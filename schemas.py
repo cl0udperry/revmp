@@ -85,3 +85,7 @@ class SecurityDataRequest(BaseModel):
     bitbucket_commit_id: str
     version_name: str
     name: str
+
+#6. For Commit Status Endpoint
+class StatusDataRequest(BaseModel):
+    status: str

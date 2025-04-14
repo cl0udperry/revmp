@@ -36,7 +36,7 @@ def create_commit(db: Session, application_uuid: str, bitbucket_commit_id: str, 
         application_uuid=application_uuid,
         bitbucket_commit_id=bitbucket_commit_id,
         release_name=version_name,
-        status="In Development" #Defai;t
+        status="In Development" #Default
     )
     db.add(new_commit)
     db.commit()
@@ -51,4 +51,20 @@ def get_commits_for_application(db: Session, app_uuid: str):
 def get_commit(db: Session, app_uuid: str, bitbucket_commit_id: str):
     return db.query(Commit).filter(Commit.application_uuid == app_uuid, Commit.bitbucket_commit_id == bitbucket_commit_id).first()
 
-#8. 
+#8. Store Blackduck vulnerabilities under the commit
+def store_blackduck_vulnerabilities(db: Session, application_uuid: str, bitbucket_commit_id: str, vulnerabilities: list):
+    for vuln in vulnerabilities:
+        try:
+            new_vuln = BlackduckVulnerability(
+                application_uuid=application_uuid,
+                bitbucket_commit_id=bitbucket_commit_id,
+                bdsa_id=vuln.get("bdsa_id"),
+                component_name=vuln.get("component_name"),
+                type=vuln.get("severity"),
+                remediation_status=vuln.get("remediationStatus"),
+                tiso_comment=vuln.get("comment")
+            )
+            db.add(new_vuln)
+        except Exception as e:
+            logger.error(f"Error creating Blackduck vulnerability: {e}")
+    db.commit()

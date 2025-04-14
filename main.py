@@ -169,8 +169,25 @@ def get_current_production_commit(app_uuid: str, db: Session = Depends(get_db)):
         return {"bitbucket_commit_id": None}
     
 #7. To update commit status (Important to go from dev to prod status need to furnish the logic to only have 1 in prod)
-@app.put("/applications/{app_uuid}/commits/{bitbucket_commit_id}/status")
-def update_status(app_uuid: str, bitbucket_commit_id: str, status: str, db: Session = Depends(get_db)):
-    #Update the status in the database
-    crud.update_status(db, app_uuid, bitbucket_commit_id, status)
-    return {"message": "Status updated successfully"}
+@app.put("/applications/{app_uuid}/commits/{bitbucket_commit_id}/status", response_model=None)
+def update_status(request_data:schemas.StatusDataRequest, app_uuid: str, bitbucket_commit_id: str, db: Session = Depends(get_db)):
+    status = request_data.status
+    valid_status_values = ["In Development", "In Production", "Archived"]
+    if status not in valid_status_values:
+        raise HTTPException(status_code=400, detail="Invalid status value")
+
+    commit = crud.get_commit_by_bitbucket_commit_id(db, bitbucket_commit_id)
+
+    if commit:
+        #Check if the new status is "In Production" and update the current "In Production commit to "Archived"
+        if status == "In Production":
+            get_current_production_commit = crud.get_production_commit(db, app_uuid)
+            if get_current_production_commit and get_current_production_commit.bitbucket_commit_id != bitbucket_commit_id:
+                get_current_production_commit.status = "Archived"
+                db.commit()
+        #Update the commit status
+        commit.status = status
+        db.commit()
+        return {"message": "Status updated successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Commit Not Found")

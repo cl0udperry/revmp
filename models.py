@@ -55,8 +55,8 @@ class CoverityVulnerability(Base):
 
 #4. Blackduck Vulnerabilities Table
 class BlackduckVulnerability(Base):
-     __tablename__ = "blackduck_vulnerabilities"
-
+    __tablename__ = "blackduck_vulnerabilities"
+    
     id = Column(Integer, primary_key=True, autoincrement=True)
     application_uuid = Column(String, ForeignKey("applications.uuid"), nullable = False)
     bitbucket_commit_id = Column(String, ForeignKey("commits.bitbucket_commit_id"), nullable = False)
@@ -73,5 +73,3 @@ class BlackduckVulnerability(Base):
 
     #Unique constraint to avoid duplicate entries for the same issue in the same release
     __table_args__ = (UniqueConstraint("application_uuid", "bitbucket_commit_id", "bdsa_id", name="unique_blackduck_vuln"))
-
-
