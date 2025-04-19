@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block content %}
+    {% block nav_path %}
+    <span><a href="{{ url_for('list_applications') }}">Home</a></span>
+    {% endblock %}
+    <div class="contatiner">
+        <h2>Applications Dashboard</h2>
+
+        <!-- Filters -->
+        <div class="filter">
+            <label for="filter">Show:</label>
+            <select id="filter" onchange="filterTable()">
+                <option value="all">All Applications</option>
+                <option value="production">Production Only</option>
+            </select>
+        </div>
+
+         <!-- Dashboard Charts -->
+        <div class="dashboard">
+            <div class="chart-container">
+                <canvas id="coverityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="blackduckChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <input type="text" id="searchInput" placeholder="Search for applications..." onkeyup="filterTable()">
+
+        <!-- Application Table -->
+        {% if applications %}
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Application Name</th>
+                    <th>Critical</th>
+                    <th>High</th>
+                    <th>Medium</th>
+                    <th>Low</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr class="app-row" data-status="{{ app.status }}">
+                    <td><a href="{{ url_for('list_commits', app_uuid=app.uuid) }}">{{ app.name }}</a></td>
+                    <td>{{ app.critical }}</td>
+                    <td>{{ app.high }}</td>
+                    <td>{{ app.medium }}</td>
+                    <td>{{ app.low }}</td>
+                </tr>
+                {% end for %}
+            </tbody>
+        </table>
+        {% else %}
+            <p class="no-data">No Applications Found.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        //Chart Data
+        const coverityData = {
+            labels: ["Critical", "High", "Medium", "Low"],
+            dataset: []
+        };
+        const blackduckData = {
+            labels: ["Critical", "High", "Medium", "Low"],
+            dataset: []
+        };
+
+        //Define the coverity_totals and blackduck_totals variables
+        const coverity_totals = {};
+        const blackduck_totals = {};
+
+        //Render the applications list as a JSON Object
+        const applicationsJson = '[{% for app in applications %}{{ app | tojson }}.{% endfor %}]';
+
+        //Remove the trailing comma from the JSON Object
+        const applications = JSON.parse(applicationsJson);
+
+        //Add a dataset for each application
+        applications.forEach((app) => {
+            coverityData.datasets.push({
+                label: app.name,
+                backgroundColor: ["#ff4d4d", "#ff751a", "#ffcc00", "#66cc66"],
+                data: [
+                    app.critical || 0,
+                    app.high || 0,
+                    app.medium || 0,
+                    app.low || 0,
+                ]
+            });
+            blackduckData.datasets.push({
+                label: app.name,
+                backgroundColor: ["#ff4d4d", "#ff751a", "#ffcc00", "#66cc66"],
+                data: [
+                    app.critical || 0,
+                    app.high || 0,
+                    app.medium || 0,
+                    app.low || 0, 
+                ]
+            });
+        });
+
+        //Render Charts
+        new Chart(document.getElementById("coverityChart"), {type: "bar", data: coverityData });
+        new Chart(document.getElementById("blackduckChart"), {type: "bar", data: blackduckData });
+
+        //Table Filter Function
+        function filterTable() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            let table = document.getElementById("applicationsTable");
+            let tr = table.getElementsByTagName("tr");
+
+            for (let i=1; i<tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td")[0];
+                if (td) {
+                    let textValue = td.textContent || td.innerText;
+                    tr[i].style.display = textValue.toUpperCase().indexOf(input) >-1 ? "" : "none";
+                }
+            }
+        }
+    </script>
+
+    {% endblock %}

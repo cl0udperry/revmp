@@ -1,5 +1,5 @@
-from fastpi import FastAPI, Depends, HTTPException
-from fastpi.templateing import Jinja2Templates
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.requests import Request
 from fastapi.staticfiles import StaticFiles

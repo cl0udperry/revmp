@@ -1,0 +1,140 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.top-bar {
+    background-color: #008b8b;
+    color: white;
+    padding: 15px 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: left;
+    height: 50px;
+    line-height: 50px;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 40px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.filter {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    width: 34%;
+    min-width: 300px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.app-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.app-table th, .app-table td {
+    padding: 14px;
+    text-align: left;
+}
+
+.app-table th {
+    background-color: #008b8b;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.app-table tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.2s ease-in-out;
+}
+
+.app-table tbody tr:hover {
+    background-color: #f0f8f8;
+}
+
+.no-data {
+    padding: 20px;
+    font-size: 18px;
+    color: #777;
+}
+
+nav {
+    background: #333;
+    color: white;
+    padding: 10px;
+}
+
+nav a {
+    color: white;
+    margin-right: 15px;
+    text-decoration: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background: #f4f4f4;
+}
+
+select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+.nav-path {
+    margin: 0;
+    padding: 0;
+}
+
+.nav-path span {
+    margin-right: 10px;
+}
+
+.nav-path span::after {
+    content: ">";
+    font-size: 16px;
+    margin-left: 10px;
+}
+
+.nav-path span:last-child::after {
+    content: "";
+}
+
+.app-name {
+    font-size: 24px;
+    padding: 10px;
+}

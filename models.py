@@ -29,7 +29,7 @@ class Commit(Base):
     low = Column(Integer)
 
     #Relationships
-    application = relationship("Application", back_populate="commits")
+    application = relationship("Application", back_populates="commits")
     coverity_vulnerabilities = relationship("CoverityVulnerability", back_populates="commit", cascade="all, delete-orphan")
     blackduck_vulnerabilities = relationship("BlackduckVulnerability", back_populates="commit", cascade="all, delete-orphan")
 
@@ -41,6 +41,7 @@ class CoverityVulnerability(Base):
     application_uuid = Column(String, ForeignKey("applications.uuid"), nullable = False)
     bitbucket_commit_id = Column(String, ForeignKey("commits.bitbucket_commit_id"), nullable = False)
     cid = Column(Integer, nullable=False)
+
     severity = Column(String, nullable = False)
     type = Column(String, nullable = False)
     status = Column(String, nullable = False) #"New", "Triaged", "Fixed", "Dismised"
@@ -51,7 +52,7 @@ class CoverityVulnerability(Base):
     commit = relationship("Commit", back_populates="coverity_vulnerabilities")
 
     #Unique constraint to avoid duplicate entries for the same issue in the same release
-    __table_args__ = (UniqueConstraint("application_uuid", "bitbucket_commit_id", "cid", name="unique_coverity_vuln"))
+    __table_args__ = (UniqueConstraint("application_uuid", "bitbucket_commit_id", "cid", name="unique_coverity_vuln"),)
 
 #4. Blackduck Vulnerabilities Table
 class BlackduckVulnerability(Base):
@@ -72,4 +73,4 @@ class BlackduckVulnerability(Base):
     commit = relationship("Commit", back_populates="blackduck_vulnerabilities")
 
     #Unique constraint to avoid duplicate entries for the same issue in the same release
-    __table_args__ = (UniqueConstraint("application_uuid", "bitbucket_commit_id", "bdsa_id", name="unique_blackduck_vuln"))
+    __table_args__ = (UniqueConstraint("application_uuid", "bitbucket_commit_id", "bdsa_id", name="unique_blackduck_vuln"),)
