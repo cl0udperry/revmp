@@ -11,7 +11,7 @@ class Application(Base):
     name = Column(String, index=True, unique=True, nullable=False) #Application Name
 
     #Relationships
-    commits = relationship("commit", back_populates="application", cascade="all, delete-orphan")
+    commits = relationship("Commit", back_populates="application", cascade="all, delete-orphan")
 
 #2. Commits Table(Tracks vulnerabilities per release/branch)
 class Commit(Base):

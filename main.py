@@ -9,7 +9,7 @@ import crud, schemas
 from models import Commit
 
 app=FastAPI()
-app.mount("static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 #Load Jinja2 templates
 templates = Jinja2Templates(directory="templates")
