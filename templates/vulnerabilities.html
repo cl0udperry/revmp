@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %} Vulnerabilities for {{ application.name }} / {{ commit.release_name }} {% endblock %}
+
+{% block content %}
+    {% block nav_path %}
+        <span><a href="{{ url_for('list_applications') }}">Home</a> > </span><span><a href="{{ url_for('list_commits', app_uuid=application.uuid) }}">{{ application.name }}</a> > </span><span><a href="{{ url_for('get_vulnerabilities', app_uuid=application.uuid, bitbucket_commit_id=commit.bitbucket_commit_id) }}">{{ commit.release_name }}</a></span>
+    {% endblock %}
+    <div class="container">
+        <h2>Vulnerabilities for {{ application.name }} / {{ commit.release_name }}</h2>
+
+        <!-- Coverity Vulnerabilities Table -->
+        <h3>Coverity Vulnerabilities</h3>
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="coverity-select-all"></th>
+                    <th>CID</th>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Developer Comment</th>
+                    <th>Security Team Comment</th>
+                    <th>Triaged Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vuln in coverity_vulns %}
+                <tr>
+                    <td><input type="checkbox" id="coverity-{{ vuln.cid }}" class="coverity-checkbox"></td>
+                    <td>{{ vuln.cid }}</td>
+                    <td>{{ vuln.type }}</td>
+                    <td>{{ vuln.severity }}</td>
+                    <td>{{ vuln.status }}</td>
+                    <td>
+                        <input type="text" id="coverity-developer-comment-{{ vuln.cid }}" value="{{ vuln.developer_comment }}" />
+                        <button onclick="updateDeveloperCommentCoverity('{{ vuln.cid }}')">Enter</button>
+                    </td>
+                    <td>
+                        <input type="text" id="coverity-security-comment-{{ vuln.cid }}" value="{{ vuln.tiso_comment }}" />
+                        <button onclick="updateSecurityCommentCoverity('{{ vuln.cid }}')">Enter</button>
+                    </td>
+                    <td>
+                        <select id="coverity-triaged-status-{{ vuln.cid }}" onchange="updateTriagedStatusCoverity('{{ vuln.cid }}')">
+                            <option value="--Select--" {% if vuln.triaged_status == "--Select--" %}selected{% endif %}>--Select--</option>
+                            <option value="False Positive" {% if vuln.triaged_status == "False Positive" %}selected{% endif %}>False Positive</option>
+                            <option value="Fix Required" {% if vuln.triaged_status == "Fix Required" %}selected{% endif %}>Fix Required</option>
+                            <option value="Risk Mitigated" {% if vuln.triaged_status == "Risk Mitigated" %}selected{% endif %}>Risk Mitigated</option>
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if coverity_vulns|length == 0 %}
+                <tr><td colspan="9">No Coverity Vulnerabilities Found.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Blackduck Vulnerabilities Table -->
+        <h3>Blackduck Vulnerabilities</h3>
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="blackduck-select-all"></th>
+                    <th>Vuln ID</th>
+                    <th>Component</th>
+                    <th>Severity</th>
+                    <th>Recommended Version</th>
+                    <th>Vulnerability Status</th>
+                    <th>Security Comment</th>
+                    <th>Triaged Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vuln in blackduck_vulns %}
+                <tr>
+                    <td><input type="checkbox" id="blackduck-{{ vuln.bdsa_id }}" class="blackduck-checkbox"></td>
+                    <td>{{ vuln.bdsa_id }}</td>
+                    <td>{{ vuln.component_name }}</td>
+                    <td>{{ vuln.type }}</td>
+                    <td>{{ vuln.recommended_version }}</td>
+                    <td>{{ vuln.remediation_status }}</td>
+                    <td>
+                        <input type="text" id="blackduck-security-comment-{{ vuln.bdsa_id }}" value="{{ vuln.security_comment }}" />
+                        <button onclick="updateSecurityCommentBlackduck('{{ vuln.bdsa_id }}')">Enter</button>
+                    </td>
+                    <td>
+                        <select id="blackduck-triaged-status-{{ vuln.bdsa_id }}" onchange="updateTriagedStatusBlackduck('{{ vuln.bdsa_id }}')">
+                            <option value="NEW" {% if vuln.remediation_status == "NEW" %}selected{% endif %}>NEW</option>
+                            <option value="IGNORED" {% if vuln.remediation_status == "IGNORED" %}selected{% endif %}>IGNORED</option>
+                            <option value="MITIGATED" {% if vuln.remediation_status == "MITIGATED" %}selected{% endif %}>MITIGATED</option>
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if blackduck_vulns|length == 0 %}
+                <tr><td colspan="9">No Blackduck Vulnerabilities Found.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+    </script>
