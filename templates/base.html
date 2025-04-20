@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}EVM Platform{% endblock %}</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EVM Platform{% endblock %}</title>
 
-        <!-- Import Roboto Font -->
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Import Roboto Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-        <!-- Import Chart.js -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Import Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
-    </head>
-    <body>
-        <nav class="top-bar">
-            Re:VMP
-        </nav>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <nav class="top-bar">
+        Re:VMP
+    </nav>
 
-    </body>
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
 </html>
