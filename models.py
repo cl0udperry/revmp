@@ -6,8 +6,8 @@ from database import Base
 #1. Applications Table (Uses Blackduck's UUID as a primary key)
 class Application(Base):
     __tablename__="applications"
-
-    uuid = Column(String, primary_key=True) # Use Blackduck Project UUID as the primary key
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String, unique=True, nullable=False) # Use Blackduck Project UUID as the primary key
     name = Column(String, index=True, unique=True, nullable=False) #Application Name
 
     #Relationships
@@ -17,9 +17,15 @@ class Application(Base):
 class Commit(Base):
     __tablename__ = "commits"
 
-    id = Column(Integer, primary_key = True, autoincrement = True)
-    application_uuid = Column(String, ForeignKey("applications.uuid"), nullable = False)
-    bitbucket_commit_id = Column(String, nullable = False)
+    # Internal primary key (auto-incremented)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # Foreign key to Application's UUID (external source ID)
+    application_uuid = Column(String, ForeignKey("applications.uuid"), nullable=False)
+
+    # External commit identifier (from Bitbucket)
+    bitbucket_commit_id = Column(String, unique=True, nullable=False)
+    
     release_name = Column(String, nullable = False)
     status = Column(String, default="In Development") 
     commit_date = Column(DateTime, default = datetime.now)

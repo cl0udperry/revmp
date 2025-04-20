@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %} Commits for {{ application.name }} {% endblock %}
+
+{% block content %}
+    {% block nav_path %}
+        <span><a href="{{ url_for('list_applications') }}">Home</a> > </span><span><a href="{{ url_for('list_commits', app_uuid=application.uuid) }}">{{ application.name }}</a> > </span>
+    {% endblock %}
+    <div class="container">
+        <h2>Commits for {{ application.name }}</h2>
+
+        <!-- Commits Table -->
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Release Name</th>
+                    <th>Commit Date</th>
+                    <th>Status</th>
+                    <th>Critical</th>
+                    <th>High</th>
+                    <th>Medium</th>
+                    <th>Low</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commit in commits %}
+                <tr>
+                    <td><a href="{{ url_for('get_vulnerabilities', app_uuid=application.uuid, bitbucket_commit_id=commit.bitbucket_commit_id) }}">{{ commit.release_name }}</a></td>
+                    <td>{{ commit.commit_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <select id="status-{{ commit.id }}">
+                            <option value="In Development" {% if commit.status == "In Development" %}selected{% endif %}>In Development</option>
+                            <option value="In Production" {% if commit.status == "In Production" %}selected{% endif %}>In Production</option>
+                            <option value="Archived" {% if commit.status == "Archived" %}selected{% endif %}>Archived</option>
+                        </select>
+                        <button onclick="confirmStatus('{{ application.uuid }}', '{{ commit.id }}')">Enter</button>
+                    </td>
+                    <td>{{ commit.critical }}</td>
+                    <td>{{ commit.high }}</td>
+                    <td>{{ commit.medium }}</td>
+                    <td>{{ commit.low }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function confirmStatus(app_uuid, bitbucket_commit_id) {
+            var status = document.getElementById("status-" + bitbucket_commit_id).value;
+            if (status === "In Production") {
+                fetch('/applications/${app_uuid}/commits/get-current-production-commit')
+                .then(response => response.json())
+                .then(data => {
+                    var curentProductionCommitId = data.bitbucket_commit_id;
+                    if (curentProductionCommitId !== bitbucket_commit_id) {
+                        fetch('/applications/${app_uuid}/commits/${currentProductionCommitId}/status', {
+                            method: "PUT",
+                            headers: { "Content-Type": "applcation/json" },
+                            body: JSON.stringify({ status:"Archived"})
+                        })
+                        .then(response => response.json())
+                        .then(data => console.log("Current production commit moved to Archived:", data));
+                    }
+                    fetch('/applications/${app_uuid}/commits/${bitbucket_commit_id}/status', {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ status: status})
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log("Status confirmed:", data));
+                });
+            } else {
+                fetch('/applications/${app_uuid}/commits/${bitbucket_commit_id}/status', {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: status})
+                })
+                .then(response => response.json())
+                .then(data => console.log("Status confirmed:", data));
+            }
+        }
+    </script>
+    {% endblock %}

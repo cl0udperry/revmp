@@ -94,22 +94,6 @@ nav a {
     text-decoration: none;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background: #f4f4f4;
-}
-
 select {
     padding: 5px;
     font-size: 16px;

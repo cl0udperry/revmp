@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
     {% block nav_path %}
-    <span><a href="{{ url_for('list_applications') }}">Home</a></span>
+        <span><a href="{{ url_for('list_applications') }}">Home</a></span>
     {% endblock %}
-    <div class="contatiner">
+    <div class="container">
         <h2>Applications Dashboard</h2>
 
         <!-- Filters -->
@@ -61,19 +61,16 @@
         //Chart Data
         const coverityData = {
             labels: ["Critical", "High", "Medium", "Low"],
-            dataset: []
+            datasets: []
         };
         const blackduckData = {
             labels: ["Critical", "High", "Medium", "Low"],
-            dataset: []
+            datasets: []
         };
 
-        //Define the coverity_totals and blackduck_totals variables
-        const coverity_totals = {};
-        const blackduck_totals = {};
-
         //Render the applications list as a JSON Object
-        const applicationsJson = '[{% for app in applications %}{{ app | tojson }}.{% endfor %}]';
+        //const applicationsJson = '[{% for app in applications %}{{ app | tojson }},{% endfor %}]';
+        const applicationsJson = '[{% for app in applications %}{{ app | tojson }}{% if not loop.last %},{% endif %}{% endfor %}]';
 
         //Remove the trailing comma from the JSON Object
         const applications = JSON.parse(applicationsJson);
@@ -122,4 +119,4 @@
         }
     </script>
 
-    {% endblock %}
+{% endblock %}

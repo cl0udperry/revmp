@@ -46,7 +46,8 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
         "blackduck_totals": {},
         "severity_totals": {}
     })
-'''
+
+
 #2. Get a Specific Application
 @app.get("/applications/{app_uuid}", response_model=schemas.ApplicationResponse)
 def get_application(app_uuid: str, db: Session = Depends(get_db)):
@@ -55,7 +56,7 @@ def get_application(app_uuid: str, db: Session = Depends(get_db)):
     if not app:
         raise HTTPException(status_code=404, detail="Application Not Found")
     return app
-'''
+
 #3. List Commits for Application
 @app.get("/applications/{app_uuid}/commits/", response_class=HTMLResponse)
 def list_commits(app_uuid: str, request: Request, db: Session = Depends(get_db)):
