@@ -72,7 +72,7 @@ class BlackduckVulnerability(Base):
     type = Column(String, nullable = False)
     recommended_version = Column(String, nullable = True)
     remediation_status = Column(String, nullable = False) #"NEW", "DISMISSED"
-    tiso_comment = Column(String, nullable = True) #Reconsider whether you want a default now or even this column
+    security_comment = Column(String, nullable = True) #Reconsider whether you want a default now or even this column
 
     #Relationships
     application = relationship("Application")

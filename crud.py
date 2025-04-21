@@ -62,7 +62,7 @@ def store_blackduck_vulnerabilities(db: Session, application_uuid: str, bitbucke
                 component_name=vuln.get("component_name"),
                 type=vuln.get("severity"),
                 remediation_status=vuln.get("remediationStatus"),
-                tiso_comment=vuln.get("comment")
+                security_comment=vuln.get("comment")
             )
             db.add(new_vuln)
         except Exception as e:
