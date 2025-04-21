@@ -48,6 +48,13 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
             blackduck_totals["high"] += crud.get_blackduck_high(db, app.uuid, production_commit.bitbucket_commit_id)
             blackduck_totals["medium"] += crud.get_blackduck_medium(db, app.uuid, production_commit.bitbucket_commit_id)
             blackduck_totals["low"] += crud.get_blackduck_low(db, app.uuid, production_commit.bitbucket_commit_id)
+            
+            severity_totals = {
+                "critical": blackduck_totals["critical"],  # Coverity has no critical
+                "high": coverity_totals["high"] + blackduck_totals["high"],
+                "medium": coverity_totals["medium"] + blackduck_totals["medium"],
+                "low": coverity_totals["low"] + blackduck_totals["low"]
+            }
         else:
             app_data.append({
                 "uuid": app.uuid,
@@ -62,7 +69,7 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
     "applications": app_data,
     "coverity_totals": coverity_totals,
     "blackduck_totals": blackduck_totals,
-    "severity_totals": {}
+    "severity_totals": severity_totals
     })
 
 
