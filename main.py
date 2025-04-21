@@ -19,6 +19,11 @@ templates = Jinja2Templates(directory="templates")
 def list_applications(request: Request, db: Session = Depends(get_db)):
     applications = crud.get_all_applications(db)
     app_data = []
+
+    # initialize totals
+    coverity_totals = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+    blackduck_totals = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+
     for app in applications:
         production_commit = crud.get_production_commit(db, app.uuid)
         if production_commit:
@@ -30,6 +35,19 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
                 "medium": crud.get_medium_vulnerabilities(db, app.uuid, production_commit.bitbucket_commit_id),
                 "low": crud.get_low_vulnerabilities(db, app.uuid, production_commit.bitbucket_commit_id)
             })
+
+            # Only include critical for BlackDuck
+            blackduck_totals["critical"] += crud.get_blackduck_critical(db, app.uuid, production_commit.bitbucket_commit_id)
+
+            # Coverity only starts from High
+            coverity_totals["high"] += crud.get_coverity_high(db, app.uuid, production_commit.bitbucket_commit_id)
+            coverity_totals["medium"] += crud.get_coverity_medium(db, app.uuid, production_commit.bitbucket_commit_id)
+            coverity_totals["low"] += crud.get_coverity_low(db, app.uuid, production_commit.bitbucket_commit_id)
+
+            # The rest of BlackDuck
+            blackduck_totals["high"] += crud.get_blackduck_high(db, app.uuid, production_commit.bitbucket_commit_id)
+            blackduck_totals["medium"] += crud.get_blackduck_medium(db, app.uuid, production_commit.bitbucket_commit_id)
+            blackduck_totals["low"] += crud.get_blackduck_low(db, app.uuid, production_commit.bitbucket_commit_id)
         else:
             app_data.append({
                 "uuid": app.uuid,
@@ -40,11 +58,11 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
                 "low": 0
             })
     return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "applications": app_data,
-        "coverity_totals": {},
-        "blackduck_totals": {},
-        "severity_totals": {}
+    "request": request,
+    "applications": app_data,
+    "coverity_totals": coverity_totals,
+    "blackduck_totals": blackduck_totals,
+    "severity_totals": {}
     })
 
 
@@ -138,7 +156,7 @@ def process_security_data(request_data: schemas.SecurityDataRequest, db: Session
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-#5. Get all Vulnerabilities for a Commit (need?)
+#5. Get all Vulnerabilities for a Commit
 @app.get("/applications/{app_uuid}/commits/{bitbucket_commit_id}/vulnerabilities", name="get_vulnerabilities", response_class=HTMLResponse)
 def get_vulnerabilities(request: Request, app_uuid: str, bitbucket_commit_id: str, db: Session = Depends(get_db)):
     commit = crud.get_commit(db, app_uuid, bitbucket_commit_id)
@@ -146,10 +164,25 @@ def get_vulnerabilities(request: Request, app_uuid: str, bitbucket_commit_id: st
         raise HTTPException(status_code=404, detail="Commit not found")
     
     coverity_vulns = crud.get_coverity_vulnerabilities_for_commit(db, app_uuid, commit.bitbucket_commit_id)
-    blackduck_vulns = crud. get_blackduck_vulnerabilities_for_commit(db, app_uuid, commit.bitbucket_commit_id)
-    print(blackduck_vulns)
-
+    blackduck_vulns = crud.get_blackduck_vulnerabilities_for_commit(db, app_uuid, commit.bitbucket_commit_id)
+    
     application = crud.get_application(db, app_uuid)
+
+    # Vulnerability counts
+    coverity_counts = {
+        "critical": 0,  # Coverity doesn't have critical
+        "high": crud.get_coverity_high(db, app_uuid, bitbucket_commit_id),
+        "medium": crud.get_coverity_medium(db, app_uuid, bitbucket_commit_id),
+        "low": crud.get_coverity_low(db, app_uuid, bitbucket_commit_id)
+    }
+
+    blackduck_counts = {
+        "critical": crud.get_blackduck_critical(db, app_uuid, bitbucket_commit_id),
+        "high": crud.get_blackduck_high(db, app_uuid, bitbucket_commit_id),
+        "medium": crud.get_blackduck_medium(db, app_uuid, bitbucket_commit_id),
+        "low": crud.get_blackduck_low(db, app_uuid, bitbucket_commit_id)
+    }
+
     return templates.TemplateResponse("vulnerabilities.html", {
         "request": request,
         "app_uuid": app_uuid,
@@ -157,7 +190,9 @@ def get_vulnerabilities(request: Request, app_uuid: str, bitbucket_commit_id: st
         "commit": commit,
         "application": application,
         "coverity_vulns": coverity_vulns,
-        "blackduck_vulns": blackduck_vulns
+        "blackduck_vulns": blackduck_vulns,
+        "coverity_counts": coverity_counts,
+        "blackduck_counts": blackduck_counts
     })
 
 #6. Get Current Prod Commit for an Application (need?)

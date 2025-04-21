@@ -300,7 +300,7 @@ def get_medium_vulnerabilities(db: Session, app_uuid: str, bitbucket_commit_id: 
     ).first()[0]
     return medium_vulnerabilities
 
-#Get Medium Vulnerabilities
+#Get Low Vulnerabilities
 def get_low_vulnerabilities(db: Session, app_uuid: str, bitbucket_commit_id: str):
     low_vulnerabilities = db.query(func.count(CoverityVulnerability.id)).filter(
         CoverityVulnerability.application_uuid == app_uuid,
@@ -314,6 +314,62 @@ def get_low_vulnerabilities(db: Session, app_uuid: str, bitbucket_commit_id: str
         BlackduckVulnerability.remediation_status.in_(["New", "NEW"])
     ).first()[0]
     return low_vulnerabilities
+
+def get_blackduck_critical(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(BlackduckVulnerability.id)).filter(
+        BlackduckVulnerability.application_uuid == app_uuid,
+        BlackduckVulnerability.bitbucket_commit_id == commit_id,
+        BlackduckVulnerability.type.in_(["Critical", "CRITICAL"]),
+        BlackduckVulnerability.remediation_status.in_(["New", "NEW"])
+    ).scalar()
+
+def get_blackduck_high(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(BlackduckVulnerability.id)).filter(
+        BlackduckVulnerability.application_uuid == app_uuid,
+        BlackduckVulnerability.bitbucket_commit_id == commit_id,
+        BlackduckVulnerability.type.in_(["High", "HIGH"]),
+        BlackduckVulnerability.remediation_status.in_(["New", "NEW"])
+    ).scalar()
+
+def get_blackduck_medium(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(BlackduckVulnerability.id)).filter(
+        BlackduckVulnerability.application_uuid == app_uuid,
+        BlackduckVulnerability.bitbucket_commit_id == commit_id,
+        BlackduckVulnerability.type.in_(["Medium", "MEDIUM"]),
+        BlackduckVulnerability.remediation_status.in_(["New", "NEW"])
+    ).scalar()
+
+def get_blackduck_low(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(BlackduckVulnerability.id)).filter(
+        BlackduckVulnerability.application_uuid == app_uuid,
+        BlackduckVulnerability.bitbucket_commit_id == commit_id,
+        BlackduckVulnerability.type.in_(["Low", "LOW"]),
+        BlackduckVulnerability.remediation_status.in_(["New", "NEW"])
+    ).scalar()
+
+def get_coverity_high(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(CoverityVulnerability.id)).filter(
+        CoverityVulnerability.application_uuid == app_uuid,
+        CoverityVulnerability.bitbucket_commit_id == commit_id,
+        CoverityVulnerability.severity == "High",
+        CoverityVulnerability.status.in_(["New", "NEW"])
+    ).scalar()
+
+def get_coverity_medium(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(CoverityVulnerability.id)).filter(
+        CoverityVulnerability.application_uuid == app_uuid,
+        CoverityVulnerability.bitbucket_commit_id == commit_id,
+        CoverityVulnerability.severity == "Medium",
+        CoverityVulnerability.status.in_(["New", "NEW"])
+    ).scalar()
+
+def get_coverity_low(db: Session, app_uuid: str, commit_id: str):
+    return db.query(func.count(CoverityVulnerability.id)).filter(
+        CoverityVulnerability.application_uuid == app_uuid,
+        CoverityVulnerability.bitbucket_commit_id == commit_id,
+        CoverityVulnerability.severity == "Low",
+        CoverityVulnerability.status.in_(["New", "NEW"])
+    ).scalar()
 
 #Get the production commit for an application
 def get_production_commit(db: Session, app_uuid: str):

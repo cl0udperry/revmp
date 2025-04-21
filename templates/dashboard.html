@@ -8,22 +8,12 @@
 
         <h2>Applications Dashboard</h2>
 
-        <!-- Filters -->
-        <div class="filter">
-            <label for="filter">Show:</label>
-            <select id="filter" onchange="filterTable()">
-                <option value="all">All Applications</option>
-                <option value="production">Production Only</option>
-            </select>
-        </div>
+        <!-- Dashboard Charts -->
 
-         <!-- Dashboard Charts -->
+        <!-- Full-Width Chart Container -->
         <div class="dashboard">
-            <div class="chart-container">
-                <canvas id="coverityChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <canvas id="blackduckChart"></canvas>
+            <div class="chart-container" style="height: 300px; width: 1200px;">
+                <canvas id="vulnChart" style="width: 100%; height: 100%;"></canvas>
             </div>
         </div>
 
@@ -32,7 +22,7 @@
 
         <!-- Application Table -->
         {% if applications %}
-        <table class="app-table">
+        <table id="applicationsTable" class="app-table">
             <thead>
                 <tr>
                     <th>Application Name</th>
@@ -59,66 +49,88 @@
         {% endif %}
     </div>
 
-    <script>
-        //Chart Data
-        const coverityData = {
-            labels: ["Critical", "High", "Medium", "Low"],
-            datasets: []
-        };
-        const blackduckData = {
-            labels: ["Critical", "High", "Medium", "Low"],
-            datasets: []
-        };
-
-        //Render the applications list as a JSON Object
-        //const applicationsJson = '[{% for app in applications %}{{ app | tojson }},{% endfor %}]';
-        const applicationsJson = '[{% for app in applications %}{{ app | tojson }}{% if not loop.last %},{% endif %}{% endfor %}]';
-
-        //Remove the trailing comma from the JSON Object
-        const applications = JSON.parse(applicationsJson);
-
-        //Add a dataset for each application
-        applications.forEach((app) => {
-            coverityData.datasets.push({
-                label: app.name,
-                backgroundColor: ["#ff4d4d", "#ff751a", "#ffcc00", "#66cc66"],
-                data: [
-                    app.critical || 0,
-                    app.high || 0,
-                    app.medium || 0,
-                    app.low || 0,
-                ]
-            });
-            blackduckData.datasets.push({
-                label: app.name,
-                backgroundColor: ["#ff4d4d", "#ff751a", "#ffcc00", "#66cc66"],
-                data: [
-                    app.critical || 0,
-                    app.high || 0,
-                    app.medium || 0,
-                    app.low || 0, 
-                ]
-            });
-        });
-
-        //Render Charts
-        new Chart(document.getElementById("coverityChart"), {type: "bar", data: coverityData });
-        new Chart(document.getElementById("blackduckChart"), {type: "bar", data: blackduckData });
-
-        //Table Filter Function
-        function filterTable() {
-            let input = document.getElementById("searchInput").value.toUpperCase();
-            let table = document.getElementById("applicationsTable");
-            let tr = table.getElementsByTagName("tr");
-
-            for (let i=1; i<tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td")[0];
-                if (td) {
-                    let textValue = td.textContent || td.innerText;
-                    tr[i].style.display = textValue.toUpperCase().indexOf(input) >-1 ? "" : "none";
-                }
-            }
-        }
+    <!-- Jinja-safe JSON -->
+    <script id="coverityTotalsData" type="application/json">
+        {{ coverity_totals | tojson }}
+    </script>
+    <script id="blackduckTotalsData" type="application/json">
+        {{ blackduck_totals | tojson }}
     </script>
 
+    <!-- JS chart logic -->
+    <script>
+        // Get JSON from embedded script tags or hidden data
+        const coverityTotals = JSON.parse(document.getElementById("coverityTotalsData").textContent);
+        const blackduckTotals = JSON.parse(document.getElementById("blackduckTotalsData").textContent);
+    
+        const labels = ["Critical", "High", "Medium", "Low"];
+    
+        const vulnData = {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Coverity",
+                    backgroundColor: "#4287f5",
+                    data: [
+                        0, // Coverity has no Criticals
+                        coverityTotals.high || 0,
+                        coverityTotals.medium || 0,
+                        coverityTotals.low || 0
+                    ]
+                },
+                {
+                    label: "BlackDuck",
+                    backgroundColor: "#f54291",
+                    data: [
+                        blackduckTotals.critical || 0,
+                        blackduckTotals.high || 0,
+                        blackduckTotals.medium || 0,
+                        blackduckTotals.low || 0
+                    ]
+                }
+            ]
+        };
+    
+        const vulnConfig = {
+            type: "bar",
+            data: vulnData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "top"
+                    },
+                    title: {
+                        display: true,
+                        text: "Total Vulnerabilities by Severity"
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        };
+    
+        const vulnChart = new Chart(
+            document.getElementById("vulnChart"),
+            vulnConfig
+        );
+    
+        // Toggle dataset visibility
+        document.getElementById("toggleCoverity").addEventListener("change", function () {
+            vulnChart.data.datasets[0].hidden = !this.checked;
+            vulnChart.update();
+        });
+    
+        document.getElementById("toggleBlackDuck").addEventListener("change", function () {
+            vulnChart.data.datasets[1].hidden = !this.checked;
+            vulnChart.update();
+        });
+    </script>
 {% endblock %}

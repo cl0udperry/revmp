@@ -8,6 +8,35 @@
     <div class="container">
         <h2>Vulnerabilities for {{ application.name }} / {{ commit.release_name }}</h2>
 
+        <h3>Vulnerability Summary for This Commit</h3>
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Source</th>
+                    <th>Critical</th>
+                    <th>High</th>
+                    <th>Medium</th>
+                    <th>Low</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>BlackDuck</td>
+                    <td>{{ blackduck_counts.critical }}</td>
+                    <td>{{ blackduck_counts.high }}</td>
+                    <td>{{ blackduck_counts.medium }}</td>
+                    <td>{{ blackduck_counts.low }}</td>
+                </tr>
+                <tr>
+                    <td>Coverity</td>
+                    <td>0</td> <!-- Coverity does not use critical -->
+                    <td>{{ coverity_counts.high }}</td>
+                    <td>{{ coverity_counts.medium }}</td>
+                    <td>{{ coverity_counts.low }}</td>
+                </tr>
+            </tbody>
+        </table>
+
         <!-- Coverity Vulnerabilities Table -->
         <h3>Coverity Vulnerabilities</h3>
         <table class="app-table">
@@ -17,6 +46,7 @@
                     <th>CID</th>
                     <th>Type</th>
                     <th>Severity</th>
+                    <th>Status</th>
                     <th>Developer Comment</th>
                     <th>Security Team Comment</th>
                     <th>Triaged Status</th>
@@ -35,7 +65,7 @@
                         <button onclick="updateDeveloperCommentCoverity('{{ vuln.cid }}')">Enter</button>
                     </td>
                     <td>
-                        <input type="text" id="coverity-security-comment-{{ vuln.cid }}" value="{{ vuln.tiso_comment }}" />
+                        <input type="text" id="coverity-security-comment-{{ vuln.cid }}" value="{{ vuln.security_comment }}" />
                         <button onclick="updateSecurityCommentCoverity('{{ vuln.cid }}')">Enter</button>
                     </td>
                     <td>
@@ -99,5 +129,118 @@
     </div>
 
     <script>
+        function updateDeveloperComment(cid) {
+            var selectedRows = document.querySelectorAll('.coverity-checkbox:checked');
+            if (selectedRows.length > 0) {
+                var comment = document.getElementById("coverity-developer-comment-" + cid).value;
+                for (var i=0; i< selectedRows.length; i++) {
+                    var rowId = selectedRows[i].id.replace("coverity-", "");
+                    fetch('/api/coverity/vulnerabilities/' + rowId + '/developer_comment', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ comment: comment})
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log("Developer comment updated:", data));
+                }
+            } else {
+                //Update comment for single row
+                fetch('/api/coverity/vulnerabilities/' + cid + '/developer_comment', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment: document.getElementById("coverity-developer-comment-" + cid).value })
+                })
+                .then(response => response.json())
+                .then(data => console.log("Developer comment updated:", data));
+            }
+        }
+
+        function updateSecurityCommentCoverity(cid) {
+            var selectedRows = document.querySelectorAll('.coverity-checkbox:checked');
+            if (selectedRows.length > 0) {
+                var comment = document.getElementById("coverity-security-comment-" + cid).value;
+                for (var i=0; i< selectedRows.length; i++) {
+                    var rowId = selectedRows[i].id.replace("coverity-", "");
+                    fetch('/api/coverity/vulnerabilities/' + rowId + '/security_comment', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ comment: comment})
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log("Security Team comment updated:", data));
+                }
+            } else {
+                //Update comment for single row
+                fetch('/api/coverity/vulnerabilities/' + cid + '/security_comment', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment: document.getElementById("coverity-security-comment-" + cid).value })
+                })
+                .then(response => response.json())
+                .then(data => console.log("Security Team comment updated:", data));
+            }
+        }
+
+        function updateSecurityCommentBlackduck(bdsa_id) {
+            var selectedRows = document.querySelectorAll('.blackduck-checkbox:checked');
+            if (selectedRows.length > 0) {
+                var comment = document.getElementById("blackduck-security-comment-" + bdsa_id).value;
+                for (var i=0; i< selectedRows.length; i++) {
+                    var rowId = selectedRows[i].id.replace("blackduck-", "");
+                    fetch('/api/blackduck/vulnerabilities/' + rowId + '/security_comment', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ comment: comment})
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log("Security Team comment updated:", data));
+                }
+            } else {
+                //Update comment for single row
+                fetch('/api/blackduck/vulnerabilities/' + cid + '/security_comment', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment: document.getElementById("blackduck-security-comment-" + cid).value })
+                })
+                .then(response => response.json())
+                .then(data => console.log("Security Team comment updated:", data));
+            }
+        }
+
+        function updateTriagedStatusCoverity(cid) {
+            var status = document.getElementById("triaged-status-" + cid).value;
+            // Make API call to update the triaged status
+            fetch('/api/coverity/vulnerabilities/' + cid + '/triaged_status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status})                
+            });
+        }
+
+        function updateTriagedStatusBlackduck(bdsa_id) {
+            var status = document.getElementById("triaged-status-" + bdsa_id).value;
+            // Make API call to update the triaged status
+            fetch('/api/blackduck/vulnerabilities/' + cid + '/triaged_status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status})                
+            });
+        }
+
+        // Select all checkboxes when the "Select All" checkbox is checked
+        document.getElementById("coverity-select-all").addEventListener("change", function() {
+            var checkboxes = document.querySelectorAll('.coverity-checkbox');
+            for (var i=0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+
+        document.getElementById("blackduck-select-all").addEventListener("change", function() {
+            var checkboxes = document.querySelectorAll('.blackduck-checkbox');
+            for (var i=0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
 
     </script>
+{% endblock %}
