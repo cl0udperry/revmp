@@ -6,7 +6,7 @@ from database import Base
 #1. Applications Table (Uses Blackduck's UUID as a primary key)
 class Application(Base):
     __tablename__="applications"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     uuid = Column(String, unique=True, nullable=False) # Use Blackduck Project UUID as the primary key
     name = Column(String, index=True, unique=True, nullable=False) #Application Name
 
