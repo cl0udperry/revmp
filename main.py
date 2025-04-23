@@ -23,6 +23,7 @@ def list_applications(request: Request, db: Session = Depends(get_db)):
     # initialize totals
     coverity_totals = {"critical": 0, "high": 0, "medium": 0, "low": 0}
     blackduck_totals = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+    severity_totals = {"critical": 0, "high": 0, "medium": 0, "low": 0}
 
     for app in applications:
         production_commit = crud.get_production_commit(db, app.uuid)
@@ -125,9 +126,9 @@ def process_security_data(request_data: schemas.SecurityDataRequest, db: Session
                 "application_uuid": existing_commit.application_uuid,
                 "bitbucket_commit_id": existing_commit.bitbucket_commit_id,
                 "critical": crud.get_critical_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
-                "high": crud.get_high_vulnerabilities(db, db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
-                "medium": crud.get_medium_vulnerabilities(db, db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
-                "low": crud.get_low_vulnerabilities(db, db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id)
+                "high": crud.get_high_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
+                "medium": crud.get_medium_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
+                "low": crud.get_low_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id)
             }
             return {
                 "message": "Security data refreshed successfully",
@@ -146,15 +147,15 @@ def process_security_data(request_data: schemas.SecurityDataRequest, db: Session
 
             commit_entry = crud.create_commit(db, project_id, bitbucket_commit_id, version_name)
 
-            crud.refresh_security_scan_details(db, commit_entry.bitbucket_commid_id, blackduck_url, snapshot_id)
+            crud.refresh_security_scan_details(db, commit_entry.bitbucket_commit_id, blackduck_url, snapshot_id)
 
             app_data = {
                 "application_uuid": existing_commit.application_uuid,
                 "bitbucket_commit_id": existing_commit.bitbucket_commit_id,
                 "critical": crud.get_critical_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
-                "high": crud.get_high_vulnerabilities(db, db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
-                "medium": crud.get_medium_vulnerabilities(db, db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
-                "low": crud.get_low_vulnerabilities(db, db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id)
+                "high": crud.get_high_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
+                "medium": crud.get_medium_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id),
+                "low": crud.get_low_vulnerabilities(db, existing_commit.application_uuid, existing_commit.bitbucket_commit_id)
             }
             return {
                 "message": "Security data processed successfully",
